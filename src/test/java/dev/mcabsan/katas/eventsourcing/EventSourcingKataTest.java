@@ -12,8 +12,9 @@ class EventSourcingKataTest {
         Auction auction = Auction.create("Mario Bros NES", 10000);
 
         repository.save(auction);
+        Auction actual = repository.getById(auction.getId());
 
-        assertThat(repository.getById(auction.getId()))
+        assertThat(actual)
                 .usingRecursiveComparison()
                 .ignoringFields("changes")
                 .isEqualTo(auction);
@@ -21,6 +22,14 @@ class EventSourcingKataTest {
 
     @Test
     void should_make_a_bid() {
-        // TODO: implement this test
+        Auction auction = Auction.create("Mario Bros NES", 10000);
+
+        auction.makeBid(20000);
+        auction.makeBid(30000);
+
+        repository.save(auction);
+        Auction actual = repository.getById(auction.getId());
+
+        assertThat(actual.getCurrentBid()).isEqualTo(30000);
     }
 }

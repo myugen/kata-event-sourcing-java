@@ -10,6 +10,8 @@ public final class Auction {
     private String itemDescription;
     private int initialPrice;
 
+    private int currentBid = 0;
+
     private final List<BaseEvent> changes = new ArrayList<>();
 
     private Auction(String id, String itemDescription, int initialPrice) {
@@ -30,13 +32,24 @@ public final class Auction {
         return initialPrice;
     }
 
+    public int getCurrentBid() {
+        return currentBid;
+    }
+
     public List<BaseEvent> getChanges() {
         return changes;
+    }
+
+    public void makeBid(int amount) {
+        AuctionNewBid auctionNewBid = new AuctionNewBid(id, Instant.now(), amount);
+        changes.add(auctionNewBid);
+        apply(auctionNewBid);
     }
 
     private void apply(BaseEvent event) {
         switch (event) {
             case AuctionCreated auctionCreated -> apply(auctionCreated);
+            case AuctionNewBid auctionNewBid -> apply(auctionNewBid);
         }
     }
 
@@ -44,6 +57,10 @@ public final class Auction {
         this.id = event.id();
         this.itemDescription = event.itemDescription();
         this.initialPrice = event.initialPrice();
+    }
+
+    private void apply(AuctionNewBid event) {
+        this.currentBid = event.amount();
     }
 
     private static Auction empty() {
