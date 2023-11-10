@@ -7,7 +7,17 @@ public sealed interface BaseEvent {
     Instant occurredAt();
 }
 
-record AuctionCreated(String id, Instant occurredAt, String itemDescription, int initialPrice) implements BaseEvent {}
-record AuctionNewBid(String id, Instant occurredAt, int amount) implements BaseEvent {}
-record AuctionNewBidV2(String id, Instant occurredAt, int amount, String bidder) implements BaseEvent {}
-record AuctionClosed(String id, Instant occurredAt) implements BaseEvent {}
+sealed interface DomainEvent extends BaseEvent {}
+sealed interface DeprecatedEvent extends BaseEvent {
+    DomainEvent toLatestVersion();
+}
+
+record AuctionCreated(String id, Instant occurredAt, String itemDescription, int initialPrice) implements DomainEvent {}
+record AuctionNewBid(String id, Instant occurredAt, int amount) implements DeprecatedEvent {
+    @Override
+    public DomainEvent toLatestVersion() {
+        return new AuctionNewBidV2(id, occurredAt, amount, "unknown");
+    }
+}
+record AuctionNewBidV2(String id, Instant occurredAt, int amount, String bidder) implements DomainEvent {}
+record AuctionClosed(String id, Instant occurredAt) implements DomainEvent {}

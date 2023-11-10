@@ -12,6 +12,15 @@ public class InMemoryAuctionEventsRepository {
     }
 
     public Auction getById(String id) {
-        return Auction.loadFromHistory(eventsStore.get(id));
+        return Auction.loadFromHistory(aggregateEvents(id));
+    }
+
+    private List<DomainEvent> aggregateEvents(String id) {
+        List<BaseEvent> events = eventsStore.get(id);
+        return events.stream()
+                .map(event -> switch (event) {
+                    case DeprecatedEvent deprecatedEvent -> deprecatedEvent.toLatestVersion();
+                    case DomainEvent domainEvent -> domainEvent;
+                }).toList();
     }
 }

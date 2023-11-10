@@ -60,10 +60,9 @@ public final class Auction {
         apply(auctionClosed);
     }
 
-    private void applyEvent(BaseEvent event) {
+    private void applyEvent(DomainEvent event) {
         switch (event) {
             case AuctionCreated auctionCreated -> apply(auctionCreated);
-            case AuctionNewBid auctionNewBid -> apply(auctionNewBid);
             case AuctionClosed auctionClosed -> apply(auctionClosed);
             case AuctionNewBidV2 auctionNewBidV2 -> apply(auctionNewBidV2);
         }
@@ -73,10 +72,6 @@ public final class Auction {
         this.id = event.id();
         this.itemDescription = event.itemDescription();
         this.initialPrice = event.initialPrice();
-    }
-
-    private void apply(AuctionNewBid event) {
-        this.currentBid = event.amount();
     }
 
     private void apply(AuctionNewBidV2 event) {
@@ -92,7 +87,7 @@ public final class Auction {
         return new Auction("", "", 0);
     }
 
-    public static Auction loadFromHistory(List<BaseEvent> events) {
+    public static Auction loadFromHistory(List<DomainEvent> events) {
         Auction auction = empty();
         events.forEach(auction::applyEvent);
         return auction;
