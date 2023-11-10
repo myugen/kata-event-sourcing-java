@@ -9,9 +9,8 @@ public final class Auction {
     private String id;
     private String itemDescription;
     private int initialPrice;
-
     private int currentBid = 0;
-
+    private boolean closed = false;
     private final List<BaseEvent> changes = new ArrayList<>();
 
     private Auction(String id, String itemDescription, int initialPrice) {
@@ -36,6 +35,10 @@ public final class Auction {
         return currentBid;
     }
 
+    public boolean isClosed() {
+        return closed;
+    }
+
     public List<BaseEvent> getChanges() {
         return changes;
     }
@@ -46,10 +49,17 @@ public final class Auction {
         apply(auctionNewBid);
     }
 
+    public void close() {
+        AuctionClosed auctionClosed = new AuctionClosed(id, Instant.now());
+        changes.add(auctionClosed);
+        apply(auctionClosed);
+    }
+
     private void apply(BaseEvent event) {
         switch (event) {
             case AuctionCreated auctionCreated -> apply(auctionCreated);
             case AuctionNewBid auctionNewBid -> apply(auctionNewBid);
+            case AuctionClosed auctionClosed -> apply(auctionClosed);
         }
     }
 
@@ -61,6 +71,10 @@ public final class Auction {
 
     private void apply(AuctionNewBid event) {
         this.currentBid = event.amount();
+    }
+
+    private void apply(AuctionClosed event) {
+        this.closed = true;
     }
 
     private static Auction empty() {
