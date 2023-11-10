@@ -10,6 +10,7 @@ public final class Auction {
     private String itemDescription;
     private int initialPrice;
     private int currentBid = 0;
+    private String currentBidder = "";
     private boolean closed = false;
     private final List<BaseEvent> changes = new ArrayList<>();
 
@@ -35,6 +36,10 @@ public final class Auction {
         return currentBid;
     }
 
+    public String getCurrentBidder() {
+        return currentBidder;
+    }
+
     public boolean isClosed() {
         return closed;
     }
@@ -43,10 +48,10 @@ public final class Auction {
         return changes;
     }
 
-    public void makeBid(int amount) {
-        AuctionNewBid auctionNewBid = new AuctionNewBid(id, Instant.now(), amount);
+    public void makeBid(int amount, String bidder) {
+        AuctionNewBidV2 auctionNewBid = new AuctionNewBidV2(id, Instant.now(), amount, bidder);
         changes.add(auctionNewBid);
-        apply(auctionNewBid);
+        applyEvent(auctionNewBid);
     }
 
     public void close() {
@@ -55,11 +60,12 @@ public final class Auction {
         apply(auctionClosed);
     }
 
-    private void apply(BaseEvent event) {
+    private void applyEvent(BaseEvent event) {
         switch (event) {
             case AuctionCreated auctionCreated -> apply(auctionCreated);
             case AuctionNewBid auctionNewBid -> apply(auctionNewBid);
             case AuctionClosed auctionClosed -> apply(auctionClosed);
+            case AuctionNewBidV2 auctionNewBidV2 -> apply(auctionNewBidV2);
         }
     }
 
@@ -73,6 +79,11 @@ public final class Auction {
         this.currentBid = event.amount();
     }
 
+    private void apply(AuctionNewBidV2 event) {
+        this.currentBid = event.amount();
+        this.currentBidder = event.bidder();
+    }
+
     private void apply(AuctionClosed event) {
         this.closed = true;
     }
@@ -83,7 +94,7 @@ public final class Auction {
 
     public static Auction loadFromHistory(List<BaseEvent> events) {
         Auction auction = empty();
-        events.forEach(auction::apply);
+        events.forEach(auction::applyEvent);
         return auction;
     }
 

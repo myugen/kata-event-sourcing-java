@@ -24,21 +24,22 @@ class EventSourcingKataTest {
     void should_make_a_bid() {
         Auction auction = Auction.create("Mario Bros NES", 10000);
 
-        auction.makeBid(20000);
-        auction.makeBid(30000);
+        auction.makeBid(20000, "John Doe");
+        auction.makeBid(30000, "Jane Doe");
 
         repository.save(auction);
         Auction actual = repository.getById(auction.getId());
 
         assertThat(actual.getCurrentBid()).isEqualTo(30000);
+        assertThat(actual.getCurrentBidder()).isEqualTo("Jane Doe");
     }
 
     @Test
     void should_close_an_auction() {
         Auction auction = Auction.create("Mario Bros NES", 10000);
 
-        auction.makeBid(20000);
-        auction.makeBid(30000);
+        auction.makeBid(20000, "John Doe");
+        auction.makeBid(30000, "Jane Doe");
 
         auction.close();
 
